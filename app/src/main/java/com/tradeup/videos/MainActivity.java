@@ -549,7 +549,7 @@ public class MainActivity extends Activity {
         StringBuilder cmd = new StringBuilder();
         cmd.append("-y ");
         for (JSONObject v : timeline) cmd.append("-i ").append(q(v.getString("_renderPath"))).append(" ");
-        if (audioFile != null && audioFile.exists()) cmd.append("-i ").append(q(audioFile.getAbsolutePath())).append(" ");
+        if (audioFile != null && audioFile.exists()) cmd.append("-stream_loop -1 -i ").append(q(audioFile.getAbsolutePath())).append(" ");
 
         JSONObject fx = settings.optJSONObject("effects");
         if (fx == null) fx = new JSONObject();
@@ -566,7 +566,7 @@ public class MainActivity extends Activity {
             String label = "v" + i;
             fc.append("[").append(i).append(":v]")
               .append("trim=start=").append(fmt(trimIn)).append(":duration=").append(fmt(durationSec * speed)).append(",")
-              .append("setpts=PTS-STARTPTS");
+              .append("setpts=(PTS-STARTPTS)");
             if (Math.abs(speed - 1.0) > 0.001) fc.append("/").append(fmt(speed));
             fc.append(",fps=").append(fps).append(",")
               .append("scale=").append(width).append(":").append(height).append(":force_original_aspect_ratio=decrease,")

@@ -10,6 +10,9 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        // Repositório público usado para resolver o FFmpegKit Android,
+        // pois os artefatos originais da Arthenica podem falhar no Maven Central.
+        maven { url 'https://artifactory.appodeal.com/appodeal-public/' }
     }
 }
 rootProject.name='TradeUpVideosAndroid'
