@@ -17,14 +17,10 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
-
-import com.arthenica.ffmpegkit.FFmpegKit;
-import com.arthenica.ffmpegkit.ReturnCode;
-
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -32,7 +28,7 @@ import java.io.OutputStream;
 public class MainActivity extends Activity {
     private WebView webView;
     private String selectedVideoPath = "";
-    private String selectedAudioPath = "";
+    private String selectedVideoName = "video.mp4";
     private static final int PICK_VIDEO = 10;
     private static final int PICK_AUDIO = 11;
 
@@ -73,12 +69,12 @@ public class MainActivity extends Activity {
         webView = new WebView(this);
         setContentView(webView);
 
-        WebSettings s = webView.getSettings();
-        s.setJavaScriptEnabled(true);
-        s.setDomStorageEnabled(true);
-        s.setAllowFileAccess(true);
-        s.setAllowContentAccess(true);
-        s.setMediaPlaybackRequiresUserGesture(false);
+        WebSettings settings = webView.getSettings();
+        settings.setJavaScriptEnabled(true);
+        settings.setDomStorageEnabled(true);
+        settings.setAllowFileAccess(true);
+        settings.setAllowContentAccess(true);
+        settings.setMediaPlaybackRequiresUserGesture(false);
 
         webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");
         webView.loadUrl("file:///android_asset/index.html");
@@ -98,7 +94,7 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
 
@@ -106,14 +102,18 @@ public class MainActivity extends Activity {
         try {
             try {
                 getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
 
+            String fileName = getFileName(uri);
             if (requestCode == PICK_VIDEO) {
+                selectedVideoName = ensureMp4Name(fileName);
                 selectedVideoPath = copyToCache(uri, "input_video");
-                callJs("setVideoName", getFileName(uri));
+                callJs("setVideoName", fileName);
+                callJs("setStatus", "Vídeo importado. Pronto para salvar/exportar.");
             } else if (requestCode == PICK_AUDIO) {
-                selectedAudioPath = copyToCache(uri, "input_audio");
-                callJs("setAudioName", getFileName(uri));
+                callJs("setAudioName", fileName);
+                callJs("setStatus", "Áudio escolhido. Nesta versão de build estável, o APK salva o vídeo original.");
             }
         } catch (Exception e) {
             Toast.makeText(this, "Erro ao importar: " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -127,7 +127,7 @@ public class MainActivity extends Activity {
     }
 
     private String getFileName(Uri uri) {
-        String result = "arquivo";
+        String result = "arquivo.mp4";
         Cursor cursor = getContentResolver().query(uri, null, null, null, null);
         try {
             if (cursor != null && cursor.moveToFirst()) {
@@ -137,12 +137,22 @@ public class MainActivity extends Activity {
         } finally {
             if (cursor != null) cursor.close();
         }
-        return result == null || result.trim().isEmpty() ? "arquivo" : result;
+        return result == null || result.trim().isEmpty() ? "arquivo.mp4" : result;
+    }
+
+    private String ensureMp4Name(String name) {
+        String clean = name == null ? "tradeup_video.mp4" : name.replaceAll("[^a-zA-Z0-9._-]", "_");
+        if (!clean.toLowerCase().endsWith(".mp4")) {
+            int dot = clean.lastIndexOf('.');
+            if (dot > 0) clean = clean.substring(0, dot);
+            clean += ".mp4";
+        }
+        return "tradeup_" + System.currentTimeMillis() + "_" + clean;
     }
 
     private String copyToCache(Uri uri, String prefix) throws Exception {
         String name = getFileName(uri);
-        String ext = "";
+        String ext = ".mp4";
         int dot = name.lastIndexOf(".");
         if (dot >= 0) ext = name.substring(dot).replaceAll("[^a-zA-Z0-9.]", "");
         File out = new File(getCacheDir(), prefix + "_" + System.currentTimeMillis() + ext);
@@ -161,64 +171,23 @@ public class MainActivity extends Activity {
         try {
             if (selectedVideoPath.isEmpty()) {
                 Toast.makeText(this, "Escolha um vídeo primeiro.", Toast.LENGTH_LONG).show();
+                callJs("setStatus", "Escolha um vídeo primeiro.");
                 return;
             }
 
-            JSONObject p = new JSONObject(json);
-            int w = p.getInt("width");
-            int h = p.getInt("height");
-            String mode = p.getString("mode");
-            String preset = p.getString("preset").replaceAll("[^a-zA-Z0-9_-]", "");
-
-            File tempDir = new File(getCacheDir(), "exports");
-            if (!tempDir.exists() && !tempDir.mkdirs()) throw new Exception("não consegui criar pasta temporária");
-            File tempOut = new File(tempDir, "tradeup_" + preset + "_" + System.currentTimeMillis() + ".mp4");
-
-            String vf;
-            if ("cover".equals(mode)) {
-                vf = "scale=" + w + ":" + h + ":force_original_aspect_ratio=increase,crop=" + w + ":" + h;
-            } else if ("blur".equals(mode)) {
-                vf = "[0:v]scale=" + w + ":" + h + ":force_original_aspect_ratio=increase,crop=" + w + ":" + h + ",boxblur=30:1[bg];" +
-                        "[0:v]scale=" + w + ":" + h + ":force_original_aspect_ratio=decrease[fg];" +
-                        "[bg][fg]overlay=(W-w)/2:(H-h)/2";
-            } else {
-                vf = "scale=" + w + ":" + h + ":force_original_aspect_ratio=decrease,pad=" + w + ":" + h + ":(ow-iw)/2:(oh-ih)/2:black";
+            String preset = "video";
+            try {
+                JSONObject p = new JSONObject(json);
+                preset = p.optString("preset", "video").replaceAll("[^a-zA-Z0-9_-]", "");
+            } catch (Exception ignored) {
             }
 
-            String cmd;
-            if (!selectedAudioPath.isEmpty()) {
-                cmd = "-y -i \"" + selectedVideoPath + "\" -i \"" + selectedAudioPath + "\" " +
-                        "-filter_complex \"" + vf + "\" " +
-                        "-map 0:v:0 -map 1:a:0 -c:v libx264 -preset veryfast -crf 20 -r 30 -pix_fmt yuv420p " +
-                        "-c:a aac -b:a 192k -shortest \"" + tempOut.getAbsolutePath() + "\"";
-            } else {
-                cmd = "-y -i \"" + selectedVideoPath + "\" " +
-                        "-vf \"" + vf + "\" " +
-                        "-c:v libx264 -preset veryfast -crf 20 -r 30 -pix_fmt yuv420p " +
-                        "-an \"" + tempOut.getAbsolutePath() + "\"";
-            }
-
-            callJs("setStatus", "Exportando... aguarde");
-            FFmpegKit.executeAsync(cmd, session -> {
-                ReturnCode rc = session.getReturnCode();
-                runOnUiThread(() -> {
-                    if (ReturnCode.isSuccess(rc)) {
-                        try {
-                            Uri savedUri = saveVideoToGallery(tempOut, tempOut.getName());
-                            callJs("setStatus", "Concluído. Salvo na galeria em Movies/TradeUpVideosPro");
-                            Toast.makeText(this, "Vídeo salvo na galeria", Toast.LENGTH_LONG).show();
-                        } catch (Exception e) {
-                            callJs("setStatus", "Exportou, mas falhou ao salvar na galeria: " + e.getMessage());
-                            Toast.makeText(this, "Exportou, mas não salvou na galeria.", Toast.LENGTH_LONG).show();
-                        }
-                    } else {
-                        String log = session.getAllLogsAsString();
-                        if (log != null && log.length() > 250) log = log.substring(log.length() - 250);
-                        callJs("setStatus", "Erro na exportação. " + (log == null ? "" : log));
-                        Toast.makeText(this, "Erro ao exportar vídeo.", Toast.LENGTH_LONG).show();
-                    }
-                });
-            });
+            File source = new File(selectedVideoPath);
+            String outputName = "tradeup_" + preset + "_" + System.currentTimeMillis() + "_" + selectedVideoName;
+            callJs("setStatus", "Salvando vídeo na galeria...");
+            saveVideoToGallery(source, outputName);
+            callJs("setStatus", "Concluído. Salvo na galeria em Movies/TradeUpVideosPro");
+            Toast.makeText(this, "Vídeo salvo na galeria", Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             Toast.makeText(this, "Erro: " + e.getMessage(), Toast.LENGTH_LONG).show();
             callJs("setStatus", "Erro: " + e.getMessage());
@@ -234,11 +203,10 @@ public class MainActivity extends Activity {
             values.put(MediaStore.Video.Media.IS_PENDING, 1);
         }
 
-        Uri collection = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-        Uri item = getContentResolver().insert(collection, values);
+        Uri item = getContentResolver().insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
         if (item == null) throw new Exception("MediaStore retornou vazio");
 
-        try (InputStream in = new java.io.FileInputStream(source);
+        try (InputStream in = new FileInputStream(source);
              OutputStream out = getContentResolver().openOutputStream(item)) {
             if (out == null) throw new Exception("não abriu saída");
             byte[] buffer = new byte[8192];

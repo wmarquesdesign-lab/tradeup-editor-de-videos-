@@ -1,10 +1,19 @@
-# TradeUp Videos Pro — Corrigido
+# TradeUp Videos Pro — FINAL CORRIGIDO
 
-Projeto Android para gerar APK pelo GitHub Actions.
+Projeto Android pronto para gerar APK pelo GitHub Actions.
 
-## Como enviar para o GitHub
+## Correções desta versão
 
-Envie a pasta completa mantendo esta estrutura:
+- Removida a dependência `com.arthenica:ffmpeg-kit-full:6.0-2`, que estava quebrando o build no GitHub Actions.
+- Removidos imports e chamadas Java do FFmpegKit que causavam erro de compilação.
+- Removida dependência de `androidx.annotation.Nullable`, que não existia no projeto.
+- Mantido APK simples e estável em WebView.
+- Exportação agora salva o vídeo selecionado na galeria em `Movies/TradeUpVideosPro`.
+- Workflow do GitHub Actions mantido em `.github/workflows/build-apk.yml`.
+
+## Estrutura correta na raiz do repositório
+
+A raiz do GitHub deve ficar assim:
 
 - `.github/workflows/build-apk.yml`
 - `app/`
@@ -13,14 +22,5 @@ Envie a pasta completa mantendo esta estrutura:
 - `settings.gradle`
 - `README.md`
 
-Depois vá em **Actions > Build APK TradeUp > Run workflow**.
-
+Depois do push, vá em **Actions** e aguarde o workflow **Build APK TradeUp** terminar.
 O APK ficará em **Artifacts** com o nome `TradeUpVideosPro-APK`.
-
-## Correções feitas
-
-- Workflow do GitHub Actions corrigido para instalar Gradle 8.7 e Android SDK.
-- Exportação corrigida para salvar o vídeo na galeria em `Movies/TradeUpVideosPro` usando MediaStore.
-- Permissões ajustadas para Android novo e antigo.
-- Interface HTML ajustada.
-- Código Java melhorado para importar arquivos e exibir erros.
