@@ -1,85 +1,191 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TradeUp Videos Pro</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;background:#101010;color:white;font-family:Arial,Helvetica,sans-serif}
-header{padding:18px;text-align:center;background:linear-gradient(135deg,#151515,#292929);font-size:22px;font-weight:800}
-main{padding:14px;max-width:780px;margin:auto}
-.card{background:#1f1f1f;border:1px solid #333;border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 8px 20px #0008}
-.preview{height:320px;border-radius:16px;background:radial-gradient(circle at top,#444,#111 60%);border:2px dashed #666;display:flex;align-items:center;justify-content:center;text-align:center;color:#ddd;font-size:18px;line-height:1.4}
-label{display:block;margin-top:12px;margin-bottom:6px;color:#ddd}
-button,select{width:100%;padding:15px;border:0;border-radius:12px;font-size:16px;margin-top:8px}
-button{background:#00c853;color:white;font-weight:bold}
-button.secondary{background:#2979ff}
-select{background:#333;color:white}
-.info{font-size:14px;color:#bbb;line-height:1.4}
-.status{background:#000;border-radius:12px;padding:12px;color:#00e676;font-size:14px;word-break:break-word;min-height:42px}
-.badge{display:inline-block;background:#333;padding:6px 10px;border-radius:999px;margin-top:8px;color:#ccc;font-size:13px;max-width:100%;word-break:break-word}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>TradeUp Videos Studio IA Final</title>
+  <link rel="stylesheet" href="css/app.css" />
+  <link rel="stylesheet" href="css/preview.css" />
+  <link rel="stylesheet" href="css/timeline.css" />
 </head>
 <body>
-<header>TradeUp Videos Pro</header>
-<main>
-<div class="card">
-<div class="preview">Editor funcional<br>Escolha vídeo + música<br>Exporte em MP4 para Reels, Status, Feed ou TV</div>
-</div>
+  <header class="topbar">
+    <div class="brand"><b>TradeUp</b><span>Videos Studio IA + PC</span></div>
+    <div class="top-actions">
+      <button class="btn secondary" onclick="Project.newProject()">Novo</button>
+      <button class="btn good" onclick="Native.pickVideos()">+ Vídeos</button>
+      <button class="btn purple" onclick="Project.save()">Salvar</button>
+      <button class="btn warn" onclick="UI.openPanel('export')">Exportar</button>
+    </div>
+  </header>
 
-<div class="card">
-<button class="secondary" onclick="AndroidBridge.pickVideo()">Escolher vídeo</button>
-<div class="badge" id="videoName">Nenhum vídeo escolhido</div>
+  <main class="workspace">
+    <section class="preview-card card">
+      <div class="card-title">
+        <h2>Preview</h2>
+        <small id="nowPlaying">Nenhum clipe selecionado</small>
+      </div>
+      <div id="previewStage" class="preview-stage">
+        <video id="previewVideo" playsinline webkit-playsinline></video>
+        <audio id="previewAudio"></audio>
+        <div id="previewText" class="preview-text"></div>
+        <img id="previewImage" class="preview-image" alt="overlay" />
+        <div id="emptyPreview" class="empty-preview">
+          <b>Escolha vídeos para começar</b>
+          <span>Agora o projeto está modular: preview, timeline, player, mídia, projeto e exportação separados.</span>
+        </div>
+      </div>
+      <div class="transport">
+        <button id="playButton" class="btn" onclick="Player.toggle()">Play</button>
+        <input id="globalSeek" type="range" min="0" max="1000" value="0" oninput="Player.seekGlobal(this.value/1000)">
+        <span id="timecode">00:00 / 00:00</span>
+      </div>
+      <div class="quick-tools">
+        <button class="btn small secondary" onclick="Player.prevClip()">◀ Clipe</button>
+        <button class="btn small secondary" onclick="Player.nextClip()">Clipe ▶</button>
+        <button class="btn small secondary" onclick="Timeline.zoom(-1)">− Zoom</button>
+        <button class="btn small secondary" onclick="Timeline.zoom(1)">+ Zoom</button>
+        <button class="btn small danger" onclick="Timeline.removeSelected()">Excluir</button>
+      </div>
+    </section>
 
-<button class="secondary" onclick="AndroidBridge.pickAudio()">Escolher áudio / música</button>
-<div class="badge" id="audioName">Sem áudio externo</div>
-</div>
+    <aside class="tools card">
+      <div class="tool-tabs">
+        <button class="active" data-panel="media" onclick="UI.openPanel('media')">Mídia</button>
+        <button data-panel="edit" onclick="UI.openPanel('edit')">Editar</button>
+        <button data-panel="effects" onclick="UI.openPanel('effects')">Efeitos</button>
+        <button data-panel="audio" onclick="UI.openPanel('audio')">Áudio</button>
+        <button data-panel="text" onclick="UI.openPanel('text')">Texto</button>
+        <button data-panel="ai" onclick="UI.openPanel('ai')">IA</button>
+        <button data-panel="export" onclick="UI.openPanel('export')">Exportar</button>
+      </div>
 
-<div class="card">
-<label>Formato de exportação</label>
-<select id="preset">
-<option value="instagram">Instagram/Reels 1080x1920</option>
-<option value="whatsapp">WhatsApp Status 1080x1920</option>
-<option value="feed">Feed Quadrado 1080x1080</option>
-<option value="tv">TV / YouTube 1920x1080</option>
-<option value="hd">HD Paisagem 1280x720</option>
-</select>
+      <section id="panel-media" class="panel active">
+        <h3>Mídia do projeto</h3>
+        <div class="grid2">
+          <button class="btn good" onclick="Native.pickVideos()">Adicionar vídeos</button>
+          <button class="btn secondary" onclick="Native.pickImages()">Adicionar imagem</button>
+          <button class="btn purple" onclick="Native.pickAudio()">Adicionar música</button>
+          <button class="btn secondary" onclick="Project.open()">Importar projeto</button>
+        </div>
+        <div id="mediaList" class="media-list empty">Nenhum arquivo carregado.</div>
+      </section>
 
-<label>Como encaixar o vídeo</label>
-<select id="mode">
-<option value="contain">Sem cortar / borda preta</option>
-<option value="blur">Sem cortar / fundo desfocado</option>
-<option value="cover">Preencher tela / pode cortar</option>
-</select>
+      <section id="panel-edit" class="panel">
+        <h3>Edição do clipe</h3>
+        <label>Início do corte (segundos)</label>
+        <input id="trimIn" type="number" value="0" min="0" step="0.1" onchange="Editor.applyTrim()">
+        <label>Fim do corte (segundos)</label>
+        <input id="trimOut" type="number" value="0" min="0" step="0.1" onchange="Editor.applyTrim()">
+        <label>Velocidade</label>
+        <select id="speed" onchange="Editor.applySpeed()">
+          <option value="0.5">0.5x</option><option value="0.75">0.75x</option><option value="1" selected>1x</option><option value="1.25">1.25x</option><option value="1.5">1.5x</option><option value="2">2x</option>
+        </select>
+        <label>Transição depois do clipe</label>
+        <select id="transition" onchange="Editor.applyTransition()">
+          <option value="none">Sem transição</option><option value="fade">Fade</option><option value="dissolve">Dissolve</option><option value="slide">Slide</option><option value="zoom">Zoom</option><option value="flash">Flash</option>
+        </select>
+        <div class="grid2">
+          <button class="btn secondary" onclick="Editor.splitAtPlayhead()">Dividir no cursor</button>
+          <button class="btn secondary" onclick="Editor.duplicateSelected()">Duplicar</button>
+        </div>
+      </section>
 
-<button onclick="exportar()">Exportar MP4</button>
-<p class="info">O arquivo será salvo na galeria do celular em <b>Movies/TradeUpVideosPro</b>.</p>
-</div>
+      <section id="panel-audio" class="panel">
+        <h3>Áudio</h3>
+        <button class="btn purple fullbtn" onclick="Native.pickAudio()">Escolher música</button>
+        <label>Volume da música</label>
+        <input id="musicVolume" type="range" min="0" max="100" value="70" oninput="AudioTools.setVolume(this.value)">
+        <label>Fade in/out</label>
+        <div class="grid2"><input id="fadeIn" type="number" value="0" step="0.5" onchange="AudioTools.setFade()"><input id="fadeOut" type="number" value="0" step="0.5" onchange="AudioTools.setFade()"></div>
+        <div id="audioInfo" class="status">Nenhuma música selecionada.</div>
+      </section>
 
-<div class="card">
-<div class="status" id="status">Pronto para testar.</div>
-</div>
-</main>
+      <section id="panel-text" class="panel">
+        <h3>Texto e camada</h3>
+        <textarea id="textContent" placeholder="Digite o texto do vídeo"></textarea>
+        <div class="grid2"><input id="textStart" type="number" value="0" step="0.5" placeholder="início"><input id="textDuration" type="number" value="4" step="0.5" placeholder="duração"></div>
+        <div class="grid2"><input id="textColor" type="color" value="#ffffff"><input id="textSize" type="number" value="36"></div>
+        <button class="btn warn fullbtn" onclick="TextTools.addText()">Adicionar texto</button>
+        <div id="layersList" class="media-list empty">Nenhuma camada.</div>
+      </section>
 
-<script>
-const presets={
- instagram:{w:1080,h:1920},
- whatsapp:{w:1080,h:1920},
- feed:{w:1080,h:1080},
- tv:{w:1920,h:1080},
- hd:{w:1280,h:720}
-};
-function setVideoName(n){document.getElementById("videoName").innerText=n || "Vídeo escolhido";}
-function setAudioName(n){document.getElementById("audioName").innerText=n || "Áudio escolhido";}
-function setStatus(t){document.getElementById("status").innerText=t;}
-function exportar(){
- const p=document.getElementById("preset").value;
- const m=document.getElementById("mode").value;
- const job={preset:p,width:presets[p].w,height:presets[p].h,mode:m};
- if(window.AndroidBridge){AndroidBridge.exportVideo(JSON.stringify(job));}
- else{alert("Abra pelo APK para exportar.");}
-}
-</script>
+
+      <section id="panel-effects" class="panel">
+        <h3>Efeitos e cor</h3>
+        <div class="grid2">
+          <button class="btn secondary" onclick="Effects.setPreset('normal')">Normal</button>
+          <button class="btn warn" onclick="Effects.setPreset('venda')">Venda forte</button>
+          <button class="btn secondary" onclick="Effects.setPreset('cinema')">Cinema</button>
+          <button class="btn secondary" onclick="Effects.setPreset('comida')">Comida</button>
+        </div>
+        <label>Brilho</label><input id="fx_brightness" type="range" min="50" max="160" value="100" oninput="Effects.update()">
+        <label>Contraste</label><input id="fx_contrast" type="range" min="50" max="180" value="100" oninput="Effects.update()">
+        <label>Saturação</label><input id="fx_saturation" type="range" min="0" max="220" value="100" oninput="Effects.update()">
+        <label>Temperatura</label><input id="fx_warmth" type="range" min="-50" max="50" value="0" oninput="Effects.update()">
+        <label>Desfoque</label><input id="fx_blur" type="range" min="0" max="8" value="0" oninput="Effects.update()">
+        <label>Nitidez</label><input id="fx_sharpen" type="range" min="0" max="20" value="0" oninput="Effects.update()">
+      </section>
+
+      <section id="panel-ai" class="panel">
+        <h3>IA local e recursos avançados</h3>
+        <textarea id="aiPrompt" placeholder="Ex: promoção relâmpago Rio Sul, ofertas de hortifruti, chamada para Reels..."></textarea>
+        <div class="grid2">
+          <button class="btn warn" onclick="AIStudio.autoEdit()">IA montar vídeo</button>
+          <button class="btn purple" onclick="AIStudio.makeCaptions()">IA criar legendas</button>
+          <button class="btn secondary" onclick="AIStudio.suggest()">Analisar projeto</button>
+          <button class="btn secondary" onclick="Effects.setPreset('venda')">Melhorar cores</button>
+        </div>
+        <div id="aiOutput" class="status">IA offline pronta. Ela cria cortes, transições, legendas, storyboard e plano de renderização sem internet.</div>
+      </section>
+
+      <section id="panel-export" class="panel">
+        <h3>Exportar</h3>
+        <label>Nome do arquivo</label>
+        <input id="exportName" value="meu_video_tradeup.mp4">
+        <div class="grid2"><select id="exportRes"><option>720p</option><option selected>1080p</option><option>4K</option></select><select id="exportFps"><option>24</option><option selected>30</option><option>60</option></select></div>
+        <label>Formato</label>
+        <select id="exportFormat"><option value="vertical" selected>Vertical 9:16 Reels/Stories</option><option value="horizontal">Horizontal 16:9 YouTube/PC</option><option value="square">Quadrado 1:1 Feed</option></select>
+        <div class="status">Android: salva no local escolhido pelo sistema. PC: exporta WebM renderizado pelo navegador.</div>
+        <button class="btn warn fullbtn" onclick="Exporter.exportVideo()">Escolher local e exportar</button>
+        <button class="btn secondary fullbtn" onclick="Project.package()">Salvar pacote ZIP completo</button>
+        <div class="progress"><span id="exportBar"></span></div>
+        <div id="exportStatus" class="status">Pronto para exportar.</div>
+      </section>
+    </aside>
+
+    <section class="timeline-card card full">
+      <div class="card-title"><h2>Timeline multipista</h2><small id="timelineInfo">0 clipes</small></div>
+      <div class="ruler" id="timelineRuler"></div>
+      <div class="timeline-wrap" id="timelineWrap">
+        <div class="track-row"><div class="track-name">Vídeo</div><div id="videoTrack" class="track video-track"></div></div>
+        <div class="track-row"><div class="track-name">Música</div><div id="audioTrack" class="track audio-track"></div></div>
+        <div class="track-row"><div class="track-name">Texto</div><div id="textTrack" class="track text-track"></div></div>
+        <div id="playhead" class="playhead"></div>
+      </div>
+      <div id="status" class="status">Versão IA + PC carregada. Escolha vídeos para editar no celular ou no navegador do computador.</div>
+    </section>
+  </main>
+
+  <nav class="bottom-tabs">
+    <button data-panel="media" onclick="UI.openPanel('media')">Mídia</button>
+    <button data-panel="edit" onclick="UI.openPanel('edit')">Editar</button>
+    <button data-panel="effects" onclick="UI.openPanel('effects')">Efeitos</button>
+    <button data-panel="ai" onclick="UI.openPanel('ai')">IA</button>
+    <button data-panel="export" onclick="UI.openPanel('export')">Exportar</button>
+  </nav>
+
+  <script src="js/native.js"></script>
+  <script src="js/project.js"></script>
+  <script src="js/timeline.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/editor.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/text.js"></script>
+  <script src="js/effects.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>

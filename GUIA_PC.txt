@@ -1,0 +1,2 @@
+Para testar no PC, abra app/src/main/assets/index.html no Chrome ou Edge.
+Use + Vídeos, IA montar vídeo e Exportar.

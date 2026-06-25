@@ -1,26 +1,28 @@
-# TradeUp Videos Pro — FINAL CORRIGIDO
+# TradeUp Videos Studio - FINAL IA + PC
 
-Projeto Android pronto para gerar APK pelo GitHub Actions.
+Versão revisada sobre a Sprint 8 com mudanças reais no código:
 
-## Correções desta versão
+## O que foi adicionado
+- Modo PC: o mesmo `index.html` abre no navegador e permite escolher vídeos, imagens e áudio.
+- Exportação PC: gera um arquivo `.webm` renderizado pelo navegador com timeline, textos e filtros.
+- IA local/offline: cria corte automático, storyboard, legendas e transições sem internet.
+- Painel de efeitos: brilho, contraste, saturação, temperatura, blur, nitidez e presets.
+- Autosave no navegador/celular.
+- Formatos de exportação: vertical 9:16, horizontal 16:9 e quadrado 1:1.
+- Projeto JSON com plano de renderização e plano da IA.
 
-- Removida a dependência `com.arthenica:ffmpeg-kit-full:6.0-2`, que estava quebrando o build no GitHub Actions.
-- Removidos imports e chamadas Java do FFmpegKit que causavam erro de compilação.
-- Removida dependência de `androidx.annotation.Nullable`, que não existia no projeto.
-- Mantido APK simples e estável em WebView.
-- Exportação agora salva o vídeo selecionado na galeria em `Movies/TradeUpVideosPro`.
-- Workflow do GitHub Actions mantido em `.github/workflows/build-apk.yml`.
+## Como testar no celular
+Suba no GitHub e rode o Actions normalmente para gerar o APK.
 
-## Estrutura correta na raiz do repositório
+## Como testar no PC
+Abra este arquivo no navegador:
+`app/src/main/assets/index.html`
 
-A raiz do GitHub deve ficar assim:
+No PC, use:
+- Adicionar vídeos
+- IA montar vídeo
+- Play
+- Exportar
 
-- `.github/workflows/build-apk.yml`
-- `app/`
-- `gradle/`
-- `build.gradle`
-- `settings.gradle`
-- `README.md`
-
-Depois do push, vá em **Actions** e aguarde o workflow **Build APK TradeUp** terminar.
-O APK ficará em **Artifacts** com o nome `TradeUpVideosPro-APK`.
+O PC exporta em `.webm`, porque é o formato suportado pelo navegador sem servidor.
+No Android, o app continua usando o seletor nativo para escolher onde salvar.
