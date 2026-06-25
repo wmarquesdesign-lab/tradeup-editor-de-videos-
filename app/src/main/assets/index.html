@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradeUp Videos Pro</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#101010;color:white;font-family:Arial,Helvetica,sans-serif}
+header{padding:18px;text-align:center;background:linear-gradient(135deg,#151515,#292929);font-size:22px;font-weight:800}
+main{padding:14px;max-width:780px;margin:auto}
+.card{background:#1f1f1f;border:1px solid #333;border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 8px 20px #0008}
+.preview{height:320px;border-radius:16px;background:radial-gradient(circle at top,#444,#111 60%);border:2px dashed #666;display:flex;align-items:center;justify-content:center;text-align:center;color:#ddd;font-size:18px;line-height:1.4}
+label{display:block;margin-top:12px;margin-bottom:6px;color:#ddd}
+button,select{width:100%;padding:15px;border:0;border-radius:12px;font-size:16px;margin-top:8px}
+button{background:#00c853;color:white;font-weight:bold}
+button.secondary{background:#2979ff}
+select{background:#333;color:white}
+.info{font-size:14px;color:#bbb;line-height:1.4}
+.status{background:#000;border-radius:12px;padding:12px;color:#00e676;font-size:14px;word-break:break-word;min-height:42px}
+.badge{display:inline-block;background:#333;padding:6px 10px;border-radius:999px;margin-top:8px;color:#ccc;font-size:13px;max-width:100%;word-break:break-word}
+</style>
+</head>
+<body>
+<header>TradeUp Videos Pro</header>
+<main>
+<div class="card">
+<div class="preview">Editor funcional<br>Escolha vídeo + música<br>Exporte em MP4 para Reels, Status, Feed ou TV</div>
+</div>
+
+<div class="card">
+<button class="secondary" onclick="AndroidBridge.pickVideo()">Escolher vídeo</button>
+<div class="badge" id="videoName">Nenhum vídeo escolhido</div>
+
+<button class="secondary" onclick="AndroidBridge.pickAudio()">Escolher áudio / música</button>
+<div class="badge" id="audioName">Sem áudio externo</div>
+</div>
+
+<div class="card">
+<label>Formato de exportação</label>
+<select id="preset">
+<option value="instagram">Instagram/Reels 1080x1920</option>
+<option value="whatsapp">WhatsApp Status 1080x1920</option>
+<option value="feed">Feed Quadrado 1080x1080</option>
+<option value="tv">TV / YouTube 1920x1080</option>
+<option value="hd">HD Paisagem 1280x720</option>
+</select>
+
+<label>Como encaixar o vídeo</label>
+<select id="mode">
+<option value="contain">Sem cortar / borda preta</option>
+<option value="blur">Sem cortar / fundo desfocado</option>
+<option value="cover">Preencher tela / pode cortar</option>
+</select>
+
+<button onclick="exportar()">Exportar MP4</button>
+<p class="info">O arquivo será salvo na galeria do celular em <b>Movies/TradeUpVideosPro</b>.</p>
+</div>
+
+<div class="card">
+<div class="status" id="status">Pronto para testar.</div>
+</div>
+</main>
+
+<script>
+const presets={
+ instagram:{w:1080,h:1920},
+ whatsapp:{w:1080,h:1920},
+ feed:{w:1080,h:1080},
+ tv:{w:1920,h:1080},
+ hd:{w:1280,h:720}
+};
+function setVideoName(n){document.getElementById("videoName").innerText=n || "Vídeo escolhido";}
+function setAudioName(n){document.getElementById("audioName").innerText=n || "Áudio escolhido";}
+function setStatus(t){document.getElementById("status").innerText=t;}
+function exportar(){
+ const p=document.getElementById("preset").value;
+ const m=document.getElementById("mode").value;
+ const job={preset:p,width:presets[p].w,height:presets[p].h,mode:m};
+ if(window.AndroidBridge){AndroidBridge.exportVideo(JSON.stringify(job));}
+ else{alert("Abra pelo APK para exportar.");}
+}
+</script>
+</body>
+</html>

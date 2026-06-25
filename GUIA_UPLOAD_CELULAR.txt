@@ -1,0 +1,25 @@
+GUIA DE UPLOAD CERTO
+
+1. Extraia este ZIP.
+2. Entre na pasta TradeUpVideosAndroid_UPLOAD_CERTO.
+3. Selecione tudo da primeira tela:
+   .github
+   app
+   gradle
+   build.gradle
+   settings.gradle
+   README.md
+   GUIA_UPLOAD_CELULAR.txt
+
+4. Arraste tudo para Upload files no GitHub.
+5. Confirme que aparecem arquivos com caminhos assim:
+   /app/src/main/AndroidManifest.xml
+   /app/src/main/assets/index.html
+   /app/src/main/java/com/tradeup/videos/MainActivity.java
+   /.github/workflows/build-apk.yml
+
+6. Clique em Commit changes.
+7. Vá em Actions.
+8. Abra Build APK TradeUp.
+9. Clique em Run workflow.
+10. Quando terminar, baixe o APK em Artifacts.
