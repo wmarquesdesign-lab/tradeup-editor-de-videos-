@@ -1,0 +1,12 @@
+.github/workflows/build-apk.yml
+GUIA_UPLOAD_CELULAR.txt
+LISTA_ARQUIVOS.txt
+README.md
+app/build.gradle
+app/src/main/AndroidManifest.xml
+app/src/main/assets/index.html
+app/src/main/java/com/tradeup/videos/MainActivity.java
+app/src/main/res/values/styles.xml
+build.gradle
+gradle/wrapper/gradle-wrapper.properties
+settings.gradle
